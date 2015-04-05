@@ -9,7 +9,7 @@
 #define NUM_HIDDEN 2
 #define NUM_VISIBLE 6
 #define TRAIN_SIZE 6
-#define NUM_EPOCHS 1000
+#define NUM_EPOCHS 5000
 #define LEARN_RATE 0.1
 
 //#define DEBUG
