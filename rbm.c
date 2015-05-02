@@ -14,34 +14,52 @@
 
 //#define DEBUG
 
+//RNG Variables
+#define SEED 12345
+static unsigned int s1 = SEED, s2 = SEED, s3 = SEED, b;
+
+
 //Weights Vector with Bias Units
 //in first col/row
-double weights[NUM_VISIBLE+1][NUM_HIDDEN+1];
+float weights[NUM_VISIBLE+1][NUM_HIDDEN+1];
 
-double pos_hidden_activations[NUM_HIDDEN+1];
-double pos_hidden_probs[NUM_HIDDEN+1];
+float pos_hidden_activations[NUM_HIDDEN+1];
+float pos_hidden_probs[NUM_HIDDEN+1];
 
-double pos_assoc[NUM_VISIBLE+1][NUM_HIDDEN+1];
+float pos_assoc[NUM_VISIBLE+1][NUM_HIDDEN+1];
 
-double neg_visible_activations[NUM_VISIBLE+1];
-double neg_visible_probs[NUM_VISIBLE+1];
+float neg_visible_activations[NUM_VISIBLE+1];
+float neg_visible_probs[NUM_VISIBLE+1];
 
-double neg_hidden_activations[NUM_HIDDEN+1];
-double neg_hidden_probs[NUM_HIDDEN+1];
+float neg_hidden_activations[NUM_HIDDEN+1];
+float neg_hidden_probs[NUM_HIDDEN+1];
 
-double neg_assoc[NUM_VISIBLE+1][NUM_HIDDEN+1];
+float neg_assoc[NUM_VISIBLE+1][NUM_HIDDEN+1];
 
-double logistic(double x){
+float taus_rng ()
+{   /* Generates numbers between 0 and 1. */
+    b = (((s1 << 13) ^ s1) >> 19);
+    s1 = (((s1 & 4294967294) << 12) ^ b);
+    b = (((s2 << 2) ^ s2) >> 25);
+    s2 = (((s2 & 4294967288) << 4) ^ b);
+    b = (((s3 << 3) ^ s3) >> 11);
+    s3 = (((s3 & 4294967280) << 17) ^ b);
+    return ((s1 ^ s2 ^ s3) * 2.3283064365386963e-10);
+}
+
+
+float logistic(float x){
     return (1/(1+exp(-x)));
 }
 
+/*
 void initialize_weights(){
     int i,j;
     for(i=0;i<NUM_VISIBLE+1;i++){
         for(j=0; j<NUM_HIDDEN+1;j++){
             //weights[i][j] = 0;
-            weights[i][j] = 0.1*rand_twister();
-            if(rand_twister()>0.5){
+            weights[i][j] = 0.1*taus_rng();
+            if(taus_rng()>0.5){
                 weights[i][j] = -weights[i][j];
             }
             if(i==0 || j==0){
@@ -59,7 +77,20 @@ void initialize_weights(){
         printf("\n");
     }
 #endif 
+}
+*/
 
+void initialize_weights(){
+    int i,j;
+    for(i=0;i<NUM_VISIBLE+1;i++){
+    	for(j=0; j<NUM_HIDDEN+1;j++){
+    		if(i==0 || j==0){
+    			weights[i][j] = 0;
+    			continue;
+    		}
+            weights[i][j] = (taus_rng()>0.5)?0.1*taus_rng():-0.1*taus_rng();
+        }
+    }
 }
 
 void print_weights(){
@@ -171,7 +202,7 @@ void train_rbm(int data_orig[TRAIN_SIZE][NUM_VISIBLE]){
 
             //Calculate Negative Visible Activations
             for(i=0; i<NUM_HIDDEN+1; i++){
-                if(pos_hidden_probs[i] > rand_twister()){
+                if(pos_hidden_probs[i] > taus_rng()){
                     for(j=0; j<NUM_VISIBLE+1; j++){
                         //Gibbs Sampling
                         neg_visible_activations[j] += weights[j][i];
